@@ -93,7 +93,7 @@ const insertToRedis = async (searchAfter) => {
         var i = 1;
         function myLoop() {
             setTimeout(function () {
-                console.log('LOOPINGG 1 Minutes');
+                console.log('LOOPINGG 30 seconds');
                 i++;
                 if (i < 8) {
                     sendAllEsToRedis(nextToken)
