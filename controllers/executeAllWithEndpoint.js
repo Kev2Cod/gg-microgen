@@ -27,7 +27,6 @@ function generateNextToken(sort) {
     return Buffer.from(nextSearch).toString('base64')
 }
 
-
 const insertToRedis = async (searchAfter) => {
     try {
         const pit = await es.openPointInTime({ index: ES_INDEX, keep_alive: '1m' })
@@ -61,7 +60,10 @@ const insertToRedis = async (searchAfter) => {
             await redis.set(`${prefixKey}[${key}]`, value)
             console.log(`Data send gg[${key}] to Redis success ✔ ...`)
 
-            axios.get(`http://localhost:3000/api/all-execute?next_token=${generateNextToken(searchAfter)}`).catch(err => console.log("Error: ", err))
+            // axios.get(`http://localhost:3000/api/all-execute?next_token=${generateNextToken(searchAfter)}`).catch(err => console.log("Error: ", err))
+
+            const decodeToken = Buffer.from(generateNextToken(searchAfter), 'base64').toString('utf-8')
+            await insertToRedis(decodeToken.split('-')) 
             return
         } else {
             console.log(`Proses data gg[${searchAfter.join("-")}] Running`)
@@ -73,7 +75,7 @@ const insertToRedis = async (searchAfter) => {
 
             if (nextSearch.hits.hits.length === 0) {
                 console.log(' - Update All Data Success')
-                return 
+                return
             } else {
                 searchAfter = nextSearch.hits.hits.at(-1).sort
                 searchAfter = [searchAfter[0], searchAfter[1]]
@@ -83,7 +85,8 @@ const insertToRedis = async (searchAfter) => {
                 await redis.set(`${prefixKey}[${key}]`, value)
                 console.log("Data send to Redis success ✔ ...")
 
-                axios.get(`http://localhost:3000/api/all-execute?next_token=${generateNextToken(searchAfter)}`).catch(err => console.log("Error :", err))
+                const decodeToken = Buffer.from(generateNextToken(searchAfter), 'base64').toString('utf-8')
+                await insertToRedis(decodeToken.split('-')) 
                 return
             }
         }
@@ -108,17 +111,17 @@ exports.esToRedisWithEndpoint = async (req, res) => {
     try {
         console.log(await redis.ping())
 
-        if (!nextToken) { 
+        if (!nextToken) {
             await insertToRedis()
         } else {
             const decodeToken = Buffer.from(nextToken, 'base64').toString('utf-8')
             await insertToRedis(decodeToken.split('-'))
         }
 
-        const response = {  
+        const response = {
             statusCode: 200,
             status: "Update data running..."
-        } 
+        }
 
         //  callback(null, response);
         res.send(response)
