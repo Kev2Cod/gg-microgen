@@ -60,8 +60,6 @@ const insertToRedis = async (searchAfter) => {
             await redis.set(`${prefixKey}[${key}]`, value)
             console.log(`Data send gg[${key}] to Redis success ✔ ...`)
 
-            // axios.get(`http://localhost:3000/api/all-execute?next_token=${generateNextToken(searchAfter)}`).catch(err => console.log("Error: ", err))
-
             const decodeToken = Buffer.from(generateNextToken(searchAfter), 'base64').toString('utf-8')
             await insertToRedis(decodeToken.split('-')) 
             return
