@@ -118,7 +118,7 @@ exports.esToRedisWithEndpoint = async (req, res) => {
 
         const response = {
             statusCode: 200,
-            status: "Update data running..."
+            status: "Update Data Success"
         }
 
         //  callback(null, response);
